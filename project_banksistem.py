@@ -1,155 +1,164 @@
 from datetime import datetime
 
-usuarios = []
-contas = []
+# Global lists to store users and accounts
+users = []
+accounts = []
 
-def exibir_menu():
-    print("\n=== Sistema Bancário ===")
-    print("1 - Novo Usuário")
-    print("2 - Nova Conta")
-    print("3 - Listar Contas")
-    print("4 - Acessar Conta")
-    print("0 - Sair")
+def display_main_menu():
+    print("\n=== Banking System ===")
+    print("1 - New User")
+    print("2 - New Account")
+    print("3 - List Accounts")
+    print("4 - Access Account")
+    print("0 - Exit")
 
-def menu_conta():
-    print("\n=== Menu da Conta ===")
-    print("1 - Depósito")
-    print("2 - Saque")
-    print("3 - Extrato")
-    print("0 - Voltar")
+def account_menu():
+    print("\n=== Account Menu ===")
+    print("1 - Deposit")
+    print("2 - Withdraw")
+    print("3 - Statement")
+    print("0 - Back")
 
-def registrar_transacao(extrato, tipo, valor):
-    agora = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-    extrato.append(f"{agora} - {tipo}: R$ {valor:.2f}")
-    return extrato
+def record_transaction(statement, type_, amount):
+    now = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+    statement.append(f"{now} - {type_}: $ {amount:.2f}")
+    return statement
 
-def deposito(saldo, extrato, valor, transacoes_diarias, LIMITE_TRANSACOES):
-    if transacoes_diarias >= LIMITE_TRANSACOES:
-        print("⚠️ Limite diário de transações atingido. Tente novamente amanhã.")
-    elif valor > 0:
-        saldo += valor
-        extrato = registrar_transacao(extrato, "Depósito", valor)
-        transacoes_diarias += 1
-        print(f"✅ Depósito de R$ {valor:.2f} realizado com sucesso!")
+def deposit(balance, statement, amount, daily_transactions, TRANSACTION_LIMIT):
+    if daily_transactions >= TRANSACTION_LIMIT:
+        print("⚠️ Daily transaction limit reached.")
+    elif amount > 0:
+        balance += amount
+        statement = record_transaction(statement, "Deposit", amount)
+        daily_transactions += 1
+        print(f"✅ Successfully deposited $ {amount:.2f}")
     else:
-        print("❌ O valor do depósito deve ser positivo.")
-    return saldo, extrato, transacoes_diarias
+        print("❌ Deposit amount must be positive.")
+    return balance, statement, daily_transactions
 
-def saque(saldo, extrato, valor, saques_diarios, transacoes_diarias, LIMITE_TRANSACOES):
-    LIMITE_SAQUES = 3
-    LIMITE_VALOR = 500
+def withdraw(balance, statement, amount, daily_withdrawals, daily_transactions, TRANSACTION_LIMIT):
+    WITHDRAWAL_LIMIT = 3
+    AMOUNT_LIMIT = 500
 
-    if transacoes_diarias >= LIMITE_TRANSACOES:
-        print("⚠️ Limite diário de transações atingido. Tente novamente amanhã.")
-    elif saques_diarios >= LIMITE_SAQUES:
-        print("⚠️ Limite diário de saques atingido.")
-    elif valor > LIMITE_VALOR:
-        print("⚠️ O valor do saque excede o limite de R$ 500.")
-    elif valor > saldo:
-        print("⚠️ Saldo insuficiente para realizar o saque.")
-    elif valor <= 0:
-        print("❌ O valor do saque deve ser positivo.")
+    if daily_transactions >= TRANSACTION_LIMIT:
+        print("⚠️ Daily transaction limit reached.")
+    elif daily_withdrawals >= WITHDRAWAL_LIMIT:
+        print("⚠️ Daily withdrawal limit reached.")
+    elif amount > AMOUNT_LIMIT:
+        print("⚠️ Withdrawal amount exceeds $500 limit.")
+    elif amount > balance:
+        print("⚠️ Insufficient balance.")
+    elif amount <= 0:
+        print("❌ Withdrawal amount must be positive.")
     else:
-        saldo -= valor
-        extrato = registrar_transacao(extrato, "Saque", valor)
-        saques_diarios += 1
-        transacoes_diarias += 1
-        print(f"✅ Saque de R$ {valor:.2f} realizado com sucesso!")
-    return saldo, extrato, saques_diarios, transacoes_diarias
+        balance -= amount
+        statement = record_transaction(statement, "Withdrawal", amount)
+        daily_withdrawals += 1
+        daily_transactions += 1
+        print(f"✅ Successfully withdrew $ {amount:.2f}")
+    return balance, statement, daily_withdrawals, daily_transactions
 
-def exibir_extrato(extrato, saldo):
-    print("\n📄 === Extrato ===")
-    if not extrato:
-        print("Nenhuma movimentação registrada.")
+def show_statement(statement, balance):
+    print("\n📄 === Statement ===")
+    if not statement:
+        print("No transactions recorded.")
     else:
-        for operacao in extrato:
-            print(operacao)
-        print(f"\n💰 Saldo atual: R$ {saldo:.2f}")
+        for entry in statement:
+            print(entry)
+        print(f"\n💰 Current balance: $ {balance:.2f}")
 
-def criar_usuario():
-    cpf = input("Informe o CPF (apenas números): ")
-    usuario = next((u for u in usuarios if u["cpf"] == cpf), None)
-    if usuario:
-        print("⚠️ Já existe um usuário com esse CPF.")
+def create_user():
+    cpf = input("Enter CPF (numbers only): ")
+    user = next((u for u in users if u["cpf"] == cpf), None)
+    if user:
+        print("⚠️ A user with this CPF already exists.")
         return
-    nome = input("Nome completo: ")
-    data_nascimento = input("Data de nascimento (dd/mm/aaaa): ")
-    endereco = input("Endereço (logradouro, nº - bairro - cidade/estado): ")
-    usuarios.append({"nome": nome, "cpf": cpf, "data_nascimento": data_nascimento, "endereco": endereco})
-    print("✅ Usuário criado com sucesso!")
 
-def criar_conta():
-    cpf = input("Informe o CPF do usuário: ")
-    usuario = next((u for u in usuarios if u["cpf"] == cpf), None)
-    if not usuario:
-        print("❌ Usuário não encontrado. Cadastre o usuário primeiro.")
+    name = input("Full name: ")
+    birth_date = input("Birth date (dd/mm/yyyy): ")
+    address = input("Address (street, number - district - city/state): ")
+
+    users.append({
+        "name": name,
+        "cpf": cpf,
+        "birth_date": birth_date,
+        "address": address
+    })
+    print("✅ User created successfully!")
+
+def create_account():
+    cpf = input("Enter user's CPF: ")
+    user = next((u for u in users if u["cpf"] == cpf), None)
+    if not user:
+        print("❌ User not found.")
         return
-    numero_conta = len(contas) + 1
-    conta = {
-        "agencia": "0001",
-        "numero": numero_conta,
-        "usuario": usuario,
-        "saldo": 0.0,
-        "extrato": [],
-        "saques_diarios": 0,
-        "transacoes_diarias": 0
+
+    account_number = len(accounts) + 1
+    account = {
+        "agency": "0001",
+        "number": account_number,
+        "user": user,
+        "balance": 0.0,
+        "statement": [],
+        "daily_withdrawals": 0,
+        "daily_transactions": 0
     }
-    contas.append(conta)
-    print(f"✅ Conta criada com sucesso! Agência: 0001 | Número da conta: {numero_conta}")
+    accounts.append(account)
+    print(f"✅ Account created successfully! Agency: 0001 | Account: {account_number}")
 
-def listar_contas():
-    if not contas:
-        print("Nenhuma conta cadastrada.")
-    for conta in contas:
-        print(f"\nAgência: {conta['agencia']}\nConta: {conta['numero']}\nTitular: {conta['usuario']['nome']}")
+def list_accounts():
+    if not accounts:
+        print("No accounts registered.")
+    for account in accounts:
+        print(f"\nAgency: {account['agency']}\nAccount: {account['number']}\nHolder: {account['user']['name']}")
 
-def acessar_conta():
-    numero = int(input("Digite o número da conta: "))
-    conta = next((c for c in contas if c["numero"] == numero), None)
-    if not conta:
-        print("❌ Conta não encontrada.")
+def access_account():
+    number = int(input("Enter account number: "))
+    account = next((a for a in accounts if a["number"] == number), None)
+    if not account:
+        print("❌ Account not found.")
         return
 
     while True:
-        menu_conta()
-        opcao = input("Escolha uma opção: ")
+        account_menu()
+        option = input("Choose an option: ")
 
-        if opcao == "1":
-            valor = float(input("Informe o valor do depósito: R$ "))
-            conta["saldo"], conta["extrato"], conta["transacoes_diarias"] = deposito(
-                conta["saldo"], conta["extrato"], valor, conta["transacoes_diarias"], 10)
+        if option == "1":
+            amount = float(input("Deposit amount: $ "))
+            account["balance"], account["statement"], account["daily_transactions"] = deposit(
+                account["balance"], account["statement"], amount, account["daily_transactions"], 10)
 
-        elif opcao == "2":
-            valor = float(input("Informe o valor do saque: R$ "))
-            conta["saldo"], conta["extrato"], conta["saques_diarios"], conta["transacoes_diarias"] = saque(
-                conta["saldo"], conta["extrato"], valor, conta["saques_diarios"], conta["transacoes_diarias"], 10)
+        elif option == "2":
+            amount = float(input("Withdrawal amount: $ "))
+            account["balance"], account["statement"], account["daily_withdrawals"], account["daily_transactions"] = withdraw(
+                account["balance"], account["statement"], amount, account["daily_withdrawals"], account["daily_transactions"], 10)
 
-        elif opcao == "3":
-            exibir_extrato(conta["extrato"], conta["saldo"])
+        elif option == "3":
+            show_statement(account["statement"], account["balance"])
 
-        elif opcao == "0":
+        elif option == "0":
             break
         else:
-            print("❌ Opção inválida.")
+            print("❌ Invalid option.")
 
 def main():
     while True:
-        exibir_menu()
-        opcao = input("Escolha uma opção: ")
+        display_main_menu()
+        option = input("Choose an option: ")
 
-        if opcao == "1":
-            criar_usuario()
-        elif opcao == "2":
-            criar_conta()
-        elif opcao == "3":
-            listar_contas()
-        elif opcao == "4":
-            acessar_conta()
-        elif opcao == "0":
-            print("👋 Obrigado por utilizar o sistema bancário.")
+        if option == "1":
+            create_user()
+        elif option == "2":
+            create_account()
+        elif option == "3":
+            list_accounts()
+        elif option == "4":
+            access_account()
+        elif option == "0":
+            print("👋 Thank you for using our banking system.")
             break
         else:
-            print("❌ Opção inválida. Tente novamente.")
+            print("❌ Invalid option.")
 
 if __name__ == "__main__":
     main()
